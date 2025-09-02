@@ -1,5 +1,5 @@
 import StripePaymentButton from '@/components/StripePaymentButton'
-import ClientOnly from '@/components/ClientOnly'
+import NoSSR from '@/components/NoSSR'
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         <p className="fixed left-0 top-0 flex w-full justify-start flex-col mx-auto border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
           Stripe Connect Marketplace
-          <div className="font-mono font-bold">with Commission Splits</div>
+          <span className="font-mono font-bold">with Commission Splits</span>
         </p>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white lg:static lg:h-auto lg:w-auto lg:bg-none">
           <a
@@ -22,12 +22,12 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative flex flex-col place-items-center space-y-8 before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:lg:h-[360px] z-[-1]">
+      <div className="relative flex flex-col place-items-center space-y-8">
         <h1 className="text-4xl font-bold text-center">
           Wellness Marketplace
         </h1>
 
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full" suppressHydrationWarning>
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold mb-2">Premium Wellness Package</h2>
             <p className="text-gray-600 mb-4">
@@ -55,12 +55,12 @@ export default function Home() {
             </div>
           </div>
 
-          <ClientOnly fallback={
+          <NoSSR fallback={
             <button
               disabled
               className="w-full text-lg py-4 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Loading...
+              Loading Payment...
             </button>
           }>
             <StripePaymentButton
@@ -71,7 +71,7 @@ export default function Home() {
             >
               💳 Pay $299.99
             </StripePaymentButton>
-          </ClientOnly>
+          </NoSSR>
 
           <p className="text-xs text-gray-500 text-center mt-4">
             Secure payment powered by Stripe. Funds automatically distributed to partners.
