@@ -1,4 +1,5 @@
 import StripePaymentButton from '@/components/StripePaymentButton'
+import ClientOnly from '@/components/ClientOnly'
 
 export default function Home() {
   return (
@@ -54,14 +55,23 @@ export default function Home() {
             </div>
           </div>
 
-          <StripePaymentButton
-            productId="wellness-package-1"
-            customerId="customer@example.com"
-            quantity={1}
-            className="w-full text-lg py-4"
-          >
-            💳 Pay $299.99
-          </StripePaymentButton>
+          <ClientOnly fallback={
+            <button
+              disabled
+              className="w-full text-lg py-4 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Loading...
+            </button>
+          }>
+            <StripePaymentButton
+              productId="wellness-package-1"
+              customerId="customer@example.com"
+              quantity={1}
+              className="w-full text-lg py-4"
+            >
+              💳 Pay $299.99
+            </StripePaymentButton>
+          </ClientOnly>
 
           <p className="text-xs text-gray-500 text-center mt-4">
             Secure payment powered by Stripe. Funds automatically distributed to partners.
