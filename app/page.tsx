@@ -56,7 +56,7 @@ export default function Home() {
 
           <StripePaymentButton
             productId="wellness-package-1"
-            customerId="customer_123"
+            customerId="customer@example.com"
             quantity={1}
             className="w-full text-lg py-4"
           >

@@ -8,7 +8,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 interface StripePaymentButtonProps {
   productId: string
-  customerId: string
+  customerId: string // Can be email or ID
   quantity?: number
   className?: string
   children?: React.ReactNode
@@ -105,18 +105,12 @@ export default function StripePaymentButton({
               <span>Total Amount:</span>
               <span className="font-medium">${breakdown.totalAmount.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Brand Partner (Wholesale):</span>
-              <span>${breakdown.brandPartnerRevenue.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Wellness Provider Commission:</span>
-              <span>${breakdown.wellnessProviderCommission.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Company Revenue:</span>
-              <span>${breakdown.companyRevenue.toFixed(2)}</span>
-            </div>
+            {breakdown.transfers?.map((transfer: any, index: number) => (
+              <div key={index} className="flex justify-between">
+                <span>{transfer.recipientName} ({transfer.type}):</span>
+                <span>${transfer.amount.toFixed(2)}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}

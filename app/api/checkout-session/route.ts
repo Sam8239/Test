@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
           }
         }
       }),
-      prisma.user.findUnique({
-        where: { id: customerId }
-      })
+      // Try to find customer by ID first, then by email
+      customerId.includes('@')
+        ? prisma.user.findUnique({ where: { email: customerId } })
+        : prisma.user.findUnique({ where: { id: customerId } })
     ])
 
     if (!product) {
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       data: {
         amount: totalAmount,
         status: PaymentStatus.PENDING,
-        customerId,
+        customerId: customer.id,
         productId,
         metadata: {
           quantity,
