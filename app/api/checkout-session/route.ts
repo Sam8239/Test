@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { calculatePaymentBreakdown, convertToStripeAmount } from '@/lib/payment-utils'
-import { StripeCheckoutSessionData, Product } from '@/types/marketplace'
-
-// Mock product data - in a real app, this would come from your database
-const MOCK_PRODUCTS: Record<string, Product> = {
-  'wellness-package-1': {
-    id: 'wellness-package-1',
-    name: 'Premium Wellness Package',
-    description: 'Complete wellness solution with supplements and consultation',
-    retailPrice: 299.99,
-    wholesalePrice: 180.00,
-    brandPartnerId: 'brand_partner_123',
-    wellnessProviderId: 'wellness_provider_456',
-  },
-}
+import { convertToStripeAmount } from '@/lib/payment-utils'
+import { TransferService } from '@/lib/transfer-service'
+import { prisma } from '@/lib/prisma'
+import { PaymentStatus } from '@prisma/client'
 
 export async function POST(request: NextRequest) {
   try {
