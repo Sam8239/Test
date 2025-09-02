@@ -1,4 +1,4 @@
-import StripePaymentButton from '@/components/StripePaymentButton'
+import StripePaymentButton from '@/components/StripePaymentButtonSimple'
 import NoSSR from '@/components/NoSSR'
 
 export default function Home() {
