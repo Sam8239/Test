@@ -85,38 +85,22 @@ export default function StripePaymentButton({
     }
   }
 
-  if (!mounted) {
-    return (
-      <div className="space-y-4">
-        <button
-          disabled
-          className={`
-            inline-flex items-center justify-center px-6 py-3 border border-transparent
-            text-base font-medium rounded-md text-white bg-gray-400
-            disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-            ${className}
-          `}
-        >
-          Loading...
-        </button>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" suppressHydrationWarning>
       <button
         onClick={handlePayment}
-        disabled={loading}
+        disabled={loading || !mounted}
         className={`
           inline-flex items-center justify-center px-6 py-3 border border-transparent
-          text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700
+          text-base font-medium rounded-md text-white ${mounted ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400'}
           focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
           disabled:opacity-50 disabled:cursor-not-allowed transition-colors
           ${className}
         `}
       >
-        {loading ? (
+        {!mounted ? (
+          'Loading...'
+        ) : loading ? (
           <>
             <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
