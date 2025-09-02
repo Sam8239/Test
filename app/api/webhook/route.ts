@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, STRIPE_WEBHOOK_SECRET } from '@/lib/stripe'
-import { convertFromStripeAmount } from '@/lib/payment-utils'
+import { TransferService } from '@/lib/transfer-service'
+import { prisma } from '@/lib/prisma'
+import { PaymentStatus } from '@prisma/client'
 import Stripe from 'stripe'
 
 export async function POST(request: NextRequest) {
@@ -53,112 +55,76 @@ export async function POST(request: NextRequest) {
 
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   console.log('Checkout session completed:', session.id)
-  
-  // Here you would typically:
-  // 1. Save the payment record to your database
-  // 2. Mark the order as paid
-  // 3. Trigger any post-payment workflows
-  
+
   const metadata = session.metadata
-  if (metadata) {
-    console.log('Payment metadata:', {
-      productId: metadata.productId,
-      customerId: metadata.customerId,
-      brandPartnerId: metadata.brandPartnerId,
-      wellnessProviderId: metadata.wellnessProviderId,
+  if (!metadata?.paymentId) {
+    console.error('Missing payment ID in session metadata')
+    return
+  }
+
+  try {
+    // Update payment status in database
+    await prisma.payment.update({
+      where: { id: metadata.paymentId },
+      data: {
+        status: PaymentStatus.PROCESSING,
+        stripeSessionId: session.id
+      }
     })
+
+    console.log(`Payment ${metadata.paymentId} marked as processing`)
+  } catch (error) {
+    console.error('Error updating payment status:', error)
   }
 }
 
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   console.log('Payment intent succeeded:', paymentIntent.id)
-  
+
   const metadata = paymentIntent.metadata
-  if (!metadata.brandPartnerId) {
-    console.error('Missing brand partner ID in payment metadata')
+  if (!metadata.paymentId) {
+    console.error('Missing payment ID in payment intent metadata')
     return
   }
-  
-  try {
-    // Process transfers after payment is confirmed
-    await processPaymentTransfers(paymentIntent)
-  } catch (error) {
-    console.error('Error processing payment transfers:', error)
-    // In production, you might want to queue this for retry
-  }
-}
 
-async function processPaymentTransfers(paymentIntent: Stripe.PaymentIntent) {
-  const metadata = paymentIntent.metadata
-  const amount = convertFromStripeAmount(paymentIntent.amount)
-  
-  console.log(`Processing transfers for payment ${paymentIntent.id}`)
-  
-  // Mock connected account IDs - in production, get these from your database
-  const MOCK_CONNECTED_ACCOUNTS = {
-    'brand_partner_123': 'acct_brand_partner_stripe_id',
-    'wellness_provider_456': 'acct_wellness_provider_stripe_id',
-  }
-  
-  const transfers = []
-  
-  // Transfer wholesale price to brand partner
-  if (metadata.brandPartnerId) {
-    const brandPartnerAccountId = MOCK_CONNECTED_ACCOUNTS[metadata.brandPartnerId as keyof typeof MOCK_CONNECTED_ACCOUNTS]
-    
-    if (brandPartnerAccountId && metadata.wholesalePrice) {
-      const wholesaleAmount = parseFloat(metadata.wholesalePrice)
-      
+  try {
+    // Update payment in database
+    const payment = await prisma.payment.update({
+      where: { id: metadata.paymentId },
+      data: {
+        status: PaymentStatus.COMPLETED,
+        stripePaymentIntentId: paymentIntent.id,
+        completedAt: new Date()
+      }
+    })
+
+    console.log(`Payment ${payment.id} completed, executing transfers...`)
+
+    // Execute all transfers using the flexible transfer system
+    await TransferService.executeTransfers(payment.id)
+
+    // Get transfer summary for logging
+    const summary = await TransferService.getTransferSummary(payment.id)
+    console.log(`Transfer summary for payment ${payment.id}:`, {
+      totalTransferred: summary.total,
+      completed: summary.completed,
+      failed: summary.failed,
+      pending: summary.pending
+    })
+
+  } catch (error) {
+    console.error('Error processing payment completion:', error)
+
+    // Mark payment as failed if transfer processing fails
+    if (metadata.paymentId) {
       try {
-        const transfer = await stripe.transfers.create({
-          amount: convertToStripeAmount(wholesaleAmount),
-          currency: 'usd',
-          destination: brandPartnerAccountId,
-          metadata: {
-            type: 'wholesale_payment',
-            paymentIntentId: paymentIntent.id,
-            brandPartnerId: metadata.brandPartnerId,
-          },
+        await prisma.payment.update({
+          where: { id: metadata.paymentId },
+          data: { status: PaymentStatus.FAILED }
         })
-        
-        transfers.push(transfer)
-        console.log(`Transferred $${wholesaleAmount} to brand partner`)
-      } catch (error) {
-        console.error('Error transferring to brand partner:', error)
+      } catch (dbError) {
+        console.error('Error updating payment status to failed:', dbError)
       }
     }
   }
-  
-  // Transfer commission to wellness provider
-  if (metadata.wellnessProviderId && metadata.wellnessProviderCommission) {
-    const wellnessProviderAccountId = MOCK_CONNECTED_ACCOUNTS[metadata.wellnessProviderId as keyof typeof MOCK_CONNECTED_ACCOUNTS]
-    
-    if (wellnessProviderAccountId) {
-      const commissionAmount = parseFloat(metadata.wellnessProviderCommission)
-      
-      try {
-        const transfer = await stripe.transfers.create({
-          amount: convertToStripeAmount(commissionAmount),
-          currency: 'usd',
-          destination: wellnessProviderAccountId,
-          metadata: {
-            type: 'wellness_provider_commission',
-            paymentIntentId: paymentIntent.id,
-            wellnessProviderId: metadata.wellnessProviderId,
-          },
-        })
-        
-        transfers.push(transfer)
-        console.log(`Transferred $${commissionAmount} commission to wellness provider`)
-      } catch (error) {
-        console.error('Error transferring to wellness provider:', error)
-      }
-    }
-  }
-  
-  // Company keeps the remaining amount automatically
-  const companyRevenue = parseFloat(metadata.companyRevenue || '0')
-  console.log(`Company revenue: $${companyRevenue}`)
-  
-  console.log(`Completed ${transfers.length} transfers for payment ${paymentIntent.id}`)
 }
