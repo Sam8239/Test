@@ -7,8 +7,8 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
 // Rate limiting configuration
 const RATE_LIMIT_CONFIG = {
   windowMs: 15 * 60 * 1000, // 15 minutes
-  maxRequests: 100, // requests per window
-  apiMaxRequests: 20, // API requests per window
+  maxRequests: process.env.NODE_ENV === 'production' ? 100 : 10000, // Very lenient in dev
+  apiMaxRequests: process.env.NODE_ENV === 'production' ? 20 : 1000, // Very lenient in dev
 }
 
 function getRateLimitKey(request: NextRequest): string {
@@ -38,44 +38,60 @@ function isRateLimited(key: string, maxRequests: number): boolean {
 }
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  
+  const { pathname, searchParams } = request.nextUrl
+
+  // Skip middleware entirely in development or for Builder.io tools
+  const isBuilderTool = searchParams.has('_screenshot_tool_allow') ||
+                       searchParams.has('builder.lazyLoadImages') ||
+                       request.headers.get('user-agent')?.includes('Builder.io')
+
+  if (process.env.NODE_ENV === 'development' && isBuilderTool) {
+    return NextResponse.next()
+  }
+
   // Security headers for all requests
   const response = NextResponse.next()
-  
-  // Security headers
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-XSS-Protection', '1; mode=block')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  
-  // Content Security Policy
-  const csp = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com",
-    "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
-    "font-src 'self' fonts.gstatic.com",
-    "img-src 'self' data: blob:",
-    "connect-src 'self' api.stripe.com",
-    "frame-src js.stripe.com",
-  ].join('; ')
-  
-  response.headers.set('Content-Security-Policy', csp)
-  
-  // Rate limiting
+
+  // Only add strict security headers in production
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('X-Frame-Options', 'DENY')
+    response.headers.set('X-XSS-Protection', '1; mode=block')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+
+    // Content Security Policy
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com",
+      "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
+      "font-src 'self' fonts.gstatic.com",
+      "img-src 'self' data: blob:",
+      "connect-src 'self' api.stripe.com",
+      "frame-src js.stripe.com",
+    ].join('; ')
+
+    response.headers.set('Content-Security-Policy', csp)
+  }
+
+  // Skip rate limiting in development
+  if (process.env.NODE_ENV === 'development') {
+    return response
+  }
+
+  // Rate limiting (production only)
   const rateLimitKey = getRateLimitKey(request)
   const isApiRoute = pathname.startsWith('/api/')
-  const maxRequests = isApiRoute 
-    ? RATE_LIMIT_CONFIG.apiMaxRequests 
+  const maxRequests = isApiRoute
+    ? RATE_LIMIT_CONFIG.apiMaxRequests
     : RATE_LIMIT_CONFIG.maxRequests
-  
+
   if (isRateLimited(rateLimitKey, maxRequests)) {
     return NextResponse.json(
-      { 
+      {
         error: 'Too many requests',
         retryAfter: Math.ceil(RATE_LIMIT_CONFIG.windowMs / 1000)
       },
-      { 
+      {
         status: 429,
         headers: {
           'Retry-After': Math.ceil(RATE_LIMIT_CONFIG.windowMs / 1000).toString(),
