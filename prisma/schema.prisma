@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String              @id @default(cuid())
+  email                  String              @unique
+  name                   String
+  role                   UserRole
+  stripeConnectAccountId String?
+  isActive              Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  
+  // Relations
+  createdProducts       Product[]           @relation("ProductCreator")
+  payments              Payment[]           @relation("PaymentCustomer")
+  transferRules         TransferRule[]      @relation("TransferRuleRecipient")
+  transfers             Transfer[]          @relation("TransferRecipient")
+  
+  @@map("users")
+}
+
+model Product {
+  id           String    @id @default(cuid())
+  name         String
+  description  String
+  retailPrice  Float
+  wholesalePrice Float
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relations
+  creatorId    String
+  creator      User      @relation("ProductCreator", fields: [creatorId], references: [id])
+  payments     Payment[]
+  transferRules TransferRule[]
+  
+  @@map("products")
+}
+
+model Payment {
+  id                    String            @id @default(cuid())
+  stripePaymentIntentId String            @unique
+  stripeSessionId       String?           @unique
+  amount                Float
+  currency              String            @default("usd")
+  status                PaymentStatus
+  transfersCompleted    Boolean           @default(false)
+  metadata              Json?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  completedAt           DateTime?
+  
+  // Relations
+  customerId            String
+  customer              User              @relation("PaymentCustomer", fields: [customerId], references: [id])
+  productId             String
+  product               Product           @relation(fields: [productId], references: [id])
+  transfers             Transfer[]
+  
+  @@map("payments")
+}
+
+model TransferRule {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  type        TransferType
+  amount      Float?            // Fixed amount
+  percentage  Float?            // Percentage of total
+  priority    Int               @default(0) // Order of execution
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  // Relations
+  productId   String
+  product     Product           @relation(fields: [productId], references: [id])
+  recipientId String
+  recipient   User              @relation("TransferRuleRecipient", fields: [recipientId], references: [id])
+  transfers   Transfer[]
+  
+  @@map("transfer_rules")
+}
+
+model Transfer {
+  id                String        @id @default(cuid())
+  stripeTransferId  String?       @unique
+  amount            Float
+  currency          String        @default("usd")
+  status            TransferStatus
+  type              TransferType
+  metadata          Json?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  completedAt       DateTime?
+  failedAt          DateTime?
+  errorMessage      String?
+  
+  // Relations
+  paymentId         String
+  payment           Payment       @relation(fields: [paymentId], references: [id])
+  recipientId       String
+  recipient         User          @relation("TransferRecipient", fields: [recipientId], references: [id])
+  transferRuleId    String?
+  transferRule      TransferRule? @relation(fields: [transferRuleId], references: [id])
+  
+  @@map("transfers")
+}
+
+enum UserRole {
+  CUSTOMER
+  COMPANY
+  BRAND_PARTNER
+  WELLNESS_PROVIDER
+  AFFILIATE
+  DISTRIBUTOR
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum TransferType {
+  WHOLESALE         // Fixed wholesale amount to brand partner
+  COMMISSION        // Percentage-based commission
+  FEE              // Platform fee
+  BONUS            // Performance bonus
+  REFERRAL         // Referral commission
+  CUSTOM           // Custom transfer amount
+}
+
+enum TransferStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
