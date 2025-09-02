@@ -27,7 +27,7 @@ export default function Home() {
           Wellness Marketplace
         </h1>
 
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
+        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full" suppressHydrationWarning>
           <div className="text-center mb-6">
             <h2 className="text-2xl font-semibold mb-2">Premium Wellness Package</h2>
             <p className="text-gray-600 mb-4">
