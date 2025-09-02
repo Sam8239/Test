@@ -1,10 +1,17 @@
 'use client'
 
-import { useState } from 'react'
-import { loadStripe } from '@stripe/stripe-js'
+import { useState, useEffect } from 'react'
+import { loadStripe, Stripe } from '@stripe/stripe-js'
 import { PaymentBreakdown } from '@/types/marketplace'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+let stripePromise: Promise<Stripe | null> | null = null
+
+const getStripe = () => {
+  if (!stripePromise) {
+    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+  }
+  return stripePromise
+}
 
 interface StripePaymentButtonProps {
   productId: string
@@ -23,12 +30,19 @@ export default function StripePaymentButton({
 }: StripePaymentButtonProps) {
   const [loading, setLoading] = useState(false)
   const [breakdown, setBreakdown] = useState<PaymentBreakdown | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handlePayment = async () => {
+    if (!mounted) return
+
     setLoading(true)
-    
+
     try {
-      const stripe = await stripePromise
+      const stripe = await getStripe()
       if (!stripe) {
         throw new Error('Stripe failed to load')
       }
@@ -71,15 +85,33 @@ export default function StripePaymentButton({
     }
   }
 
+  if (!mounted) {
+    return (
+      <div className="space-y-4">
+        <button
+          disabled
+          className={`
+            inline-flex items-center justify-center px-6 py-3 border border-transparent
+            text-base font-medium rounded-md text-white bg-gray-400
+            disabled:opacity-50 disabled:cursor-not-allowed transition-colors
+            ${className}
+          `}
+        >
+          Loading...
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <button
         onClick={handlePayment}
         disabled={loading}
         className={`
-          inline-flex items-center justify-center px-6 py-3 border border-transparent 
-          text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
+          inline-flex items-center justify-center px-6 py-3 border border-transparent
+          text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
           disabled:opacity-50 disabled:cursor-not-allowed transition-colors
           ${className}
         `}
