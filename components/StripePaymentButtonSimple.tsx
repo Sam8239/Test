@@ -44,10 +44,15 @@ export default function StripePaymentButton({
         }),
       })
 
-      const data = await response.json()
+      let data
+      try {
+        data = await response.json()
+      } catch (parseError) {
+        throw new Error('Failed to parse server response')
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session')
+        throw new Error(data?.error || `Server error: ${response.status}`)
       }
 
       setBreakdown(data.breakdown)
