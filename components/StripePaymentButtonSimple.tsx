@@ -52,7 +52,9 @@ export default function StripePaymentButton({
       }
 
       if (!response.ok) {
-        throw new Error(data?.error || `Server error: ${response.status}`)
+        const errorMessage = data?.error || `Server error: ${response.status}`
+        const errorDetails = data?.details ? `\n${data.details}` : ''
+        throw new Error(`${errorMessage}${errorDetails}`)
       }
 
       setBreakdown(data.breakdown)
