@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Raleway, Poppins } from 'next/font/google'
+import { Inter, Raleway, Poppins, Work_Sans } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -8,6 +8,10 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700', '900'],
   subsets: ['latin'],
   variable: '--font-poppins'
+})
+const workSans = Work_Sans({
+  subsets: ['latin'],
+  variable: '--font-work-sans'
 })
 
 export const metadata: Metadata = {
@@ -22,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} ${raleway.variable} ${poppins.variable}`} suppressHydrationWarning>
+      <body className={`${inter.className} ${raleway.variable} ${poppins.variable} ${workSans.variable}`} suppressHydrationWarning>
         {children}
       </body>
     </html>
