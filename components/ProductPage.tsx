@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { MapPin, Share } from 'react-feather'
+import ShareModal from './ShareModal'
 
 interface ProductImage {
   src: string
@@ -13,6 +14,7 @@ export default function ProductPage() {
   const [selectedSize, setSelectedSize] = useState('XSmall')
   const [selectedColor, setSelectedColor] = useState('Black')
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
 
   const productImages: ProductImage[] = [
     {
@@ -33,17 +35,7 @@ export default function ProductPage() {
   const colors = ['Black', 'Aqua', 'Burgundy']
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Moto Closed Toe Grip Sock',
-        text: 'Check out this amazing grip sock from Arebesk!',
-        url: window.location.href,
-      })
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(window.location.href)
-      alert('Link copied to clipboard!')
-    }
+    setIsShareModalOpen(true)
   }
 
   return (
@@ -238,6 +230,14 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        url="https://cleeri.com/item/moto-closed-toe-grip-sock"
+        title="Moto Closed Toe Grip Sock - Arebesk"
+      />
     </div>
   )
 }
