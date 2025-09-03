@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { MapPin, Share } from 'react-feather'
 
 interface ProductImage {
   src: string
@@ -128,9 +129,7 @@ export default function ProductPage() {
                 <p className="text-sm text-gray-600 font-inter">rachel@arebesk.com</p>
               </div>
               <button className="flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">
-                <svg className="w-5 h-5" viewBox="0 0 32 32" fill="currentColor">
-                  <path d="M16 2a6 6 0 0 0-6 6c0 4.5 6 12 6 12s6-7.5 6-12a6 6 0 0 0-6-6zm0 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
-                </svg>
+                <MapPin size={20} />
                 Contact Us
               </button>
             </div>
@@ -149,13 +148,11 @@ export default function ProductPage() {
             >
               by Arebesk
             </a>
-            <button 
+            <button
               onClick={handleShare}
               className="flex items-center gap-2 px-5 py-3 border border-gray-700 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <svg className="w-5 h-5" viewBox="0 0 32 32" fill="currentColor">
-                <path d="M18 16l-4-4v3H6v2h8v3l4-4zM20 6v2h6v16h-6v2h8V6h-8z"/>
-              </svg>
+              <Share size={20} />
               Share
             </button>
           </div>
