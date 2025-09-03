@@ -1,93 +1,9 @@
-import StripePaymentButton from '@/components/StripePaymentButtonSimple'
-import NoSSR from '@/components/NoSSR'
+import StorePage from '@/components/StorePage'
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-start flex-col mx-auto border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4">
-          Stripe Connect Marketplace
-          <span className="font-mono font-bold">with Commission Splits</span>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://stripe.com/connect"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Powered by{' '}
-            <span className="text-2xl font-bold">Stripe Connect</span>
-          </a>
-        </div>
-      </div>
-
-      <div className="relative flex flex-col place-items-center space-y-8">
-        <h1 className="text-4xl font-bold text-center">
-          Wellness Marketplace
-        </h1>
-
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-semibold mb-2">Premium Wellness Package</h2>
-            <p className="text-gray-600 mb-4">
-              Complete wellness solution with supplements and consultation
-            </p>
-            <div className="text-3xl font-bold text-blue-600 mb-4">$299.99</div>
-          </div>
-
-          <div className="space-y-3 text-sm text-gray-600 mb-6">
-            <div className="flex justify-between">
-              <span>Brand Partner (Wholesale):</span>
-              <span>$180.00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Wellness Provider (15%):</span>
-              <span>$45.00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Company Revenue (10%):</span>
-              <span>$30.00</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Platform Fee:</span>
-              <span>$44.99</span>
-            </div>
-          </div>
-
-          <NoSSR fallback={
-            <button
-              disabled
-              className="w-full text-lg py-4 inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Loading Payment...
-            </button>
-          }>
-            <StripePaymentButton
-              productId="wellness-package-1"
-              customerId="customer@example.com"
-              quantity={1}
-              className="w-full text-lg py-4"
-            >
-              💳 Pay $299.99
-            </StripePaymentButton>
-          </NoSSR>
-
-          <p className="text-xs text-gray-500 text-center mt-4">
-            Secure payment powered by Stripe. Funds automatically distributed to partners.
-          </p>
-        </div>
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-        >
-          <h2 />
-        </a>
-      </div>
+    <main className="min-h-screen bg-gray-100 py-8">
+      <StorePage />
     </main>
   )
 }

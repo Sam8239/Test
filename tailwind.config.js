@@ -11,6 +11,13 @@ module.exports = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
       },
+      fontFamily: {
+        'raleway': ['var(--font-raleway)', 'sans-serif'],
+        'poppins': ['var(--font-poppins)', 'sans-serif'],
+        'work-sans': ['var(--font-work-sans)', 'sans-serif'],
+        'inter': ['Inter', 'sans-serif'],
+        'inter-tight': ['Inter Tight', 'Inter', 'sans-serif'],
+      },
     },
   },
   plugins: [],

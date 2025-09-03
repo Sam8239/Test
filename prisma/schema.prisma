@@ -19,13 +19,14 @@ model User {
   isActive              Boolean             @default(true)
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
-  
+
   // Relations
   createdProducts       Product[]           @relation("ProductCreator")
   payments              Payment[]           @relation("PaymentCustomer")
   transferRules         TransferRule[]      @relation("TransferRuleRecipient")
   transfers             Transfer[]          @relation("TransferRecipient")
-  
+  ecwidStores           EcwidStore[]        @relation("UserEcwidStores")
+
   @@map("users")
 }
 
@@ -151,4 +152,121 @@ enum TransferStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+model EcwidStore {
+  id                String        @id @default(cuid())
+  ecwidStoreId      String        @unique
+  storeName         String
+  storeUrl          String?
+
+  // OAuth tokens
+  accessToken       String
+  refreshToken      String?
+  tokenExpiresAt    DateTime?
+
+  // Store settings
+  isActive          Boolean       @default(true)
+  syncEnabled       Boolean       @default(true)
+  lastSyncAt        DateTime?
+
+  // Metadata
+  storeData         Json?         // Store additional Ecwid store data
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  userId            String
+  user              User          @relation("UserEcwidStores", fields: [userId], references: [id])
+  products          EcwidProduct[]
+  orders            EcwidOrder[]
+
+  @@map("ecwid_stores")
+}
+
+model EcwidProduct {
+  id                String        @id @default(cuid())
+  ecwidProductId    String
+  ecwidStoreId      String
+
+  // Product data from Ecwid
+  name              String
+  description       String?
+  sku               String?
+  price             Float
+  compareToPrice    Float?
+  wholesalePrice    Float?
+  weight            Float?
+
+  // Product status
+  enabled           Boolean       @default(true)
+  inStock           Boolean       @default(true)
+  quantity          Int?
+
+  // Categories and images
+  categoryIds       Json?         // Array of category IDs
+  imageUrls         Json?         // Array of image URLs
+
+  // Sync data
+  ecwidData         Json?         // Full product data from Ecwid
+  lastSyncAt        DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  ecwidStore        EcwidStore    @relation(fields: [ecwidStoreId], references: [id])
+
+  @@unique([ecwidProductId, ecwidStoreId])
+  @@map("ecwid_products")
+}
+
+model EcwidOrder {
+  id                String        @id @default(cuid())
+  ecwidOrderId      String
+  ecwidStoreId      String
+
+  // Order details
+  orderNumber       String
+  customerEmail     String?
+  customerName      String?
+
+  // Financial data
+  total             Float
+  subtotal          Float?
+  tax               Float?
+  shipping          Float?
+  discount          Float?
+
+  // Order status
+  fulfillmentStatus String?       // NEW, PROCESSING, SHIPPED, DELIVERED, etc.
+  paymentStatus     String?       // AWAITING_PAYMENT, PAID, CANCELLED, etc.
+
+  // Dates
+  orderDate         DateTime
+  shippedDate       DateTime?
+  deliveredDate     DateTime?
+
+  // Order items and data
+  items             Json?         // Array of order items
+  shippingAddress   Json?         // Shipping address data
+  billingAddress    Json?         // Billing address data
+  ecwidData         Json?         // Full order data from Ecwid
+
+  // Sync data
+  lastSyncAt        DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  ecwidStore        EcwidStore    @relation(fields: [ecwidStoreId], references: [id])
+
+  @@unique([ecwidOrderId, ecwidStoreId])
+  @@map("ecwid_orders")
+}
+
+enum EcwidSyncStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
 }

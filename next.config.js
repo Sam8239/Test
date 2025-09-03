@@ -66,6 +66,20 @@ const nextConfig = {
     formats: ['image/webp', 'image/avif'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '0d8ab5fd581da03d1946ff12c0bf7e45.cdn.bubble.io',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'd1muf25xaso8hp.cloudfront.net',
+        port: '',
+        pathname: '/**',
+      },
+    ],
   },
 
   // Bundle analyzer (uncomment for analysis)
