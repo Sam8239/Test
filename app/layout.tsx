@@ -1,8 +1,14 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Raleway, Poppins } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
+const raleway = Raleway({ subsets: ['latin'], variable: '--font-raleway' })
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700', '900'],
+  subsets: ['latin'],
+  variable: '--font-poppins'
+})
 
 export const metadata: Metadata = {
   title: 'Next.js App',
@@ -16,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} ${raleway.variable} ${poppins.variable}`} suppressHydrationWarning>
         {children}
       </body>
     </html>
