@@ -16,6 +16,7 @@ module.exports = {
         'poppins': ['var(--font-poppins)', 'sans-serif'],
         'work-sans': ['var(--font-work-sans)', 'sans-serif'],
         'inter': ['Inter', 'sans-serif'],
+        'inter-tight': ['Inter Tight', 'Inter', 'sans-serif'],
       },
     },
   },
